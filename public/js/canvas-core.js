@@ -84,7 +84,10 @@ class CanvasEngine {
     }
 
     if (this.cameraManager) this.cameraManager.deselect();
-    if (this.previewManager) this.previewManager.hideHoverPreview();
+    if (this.previewManager) {
+      this.previewManager.hideHoverPreview();
+      this.previewManager.hideCameraDetails();
+    }
 
     this.dragState = { active: true, type: 'pan', startMouseX: e.clientX, startMouseY: e.clientY, startOffsetX: this.state.offsetX, startOffsetY: this.state.offsetY };
     this.clickCandidate = false;
@@ -156,9 +159,13 @@ class CanvasEngine {
       const cam = this.cameraManager.getCamera(this.dragState.cameraId);
       if (cam) {
         if (this.wasSelected) {
-          this.cameraManager.select(cam.id);
           if (this.previewManager) {
+            this.previewManager.hideCameraDetails();
             this.previewManager.enterFullPreview(cam);
+          }
+        } else {
+          if (this.previewManager) {
+            this.previewManager.showCameraDetails(cam);
           }
         }
       }
