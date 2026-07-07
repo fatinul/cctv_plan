@@ -15,6 +15,9 @@ class PreviewManager {
     this.pipExitArea = document.getElementById('pipExitArea');
     this.noStreamMsg = document.getElementById('noStreamMsg');
 
+    this.detailsUpdateTimer = null;
+    this.detailsCameraId = null;
+
     this.pipExitArea.addEventListener('click', (e) => this.exitFullPreview());
     this.closeBtn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -190,11 +193,16 @@ class PreviewManager {
     var panel = document.getElementById('cameraDetails');
     if (!body || !panel) return;
 
-    var statusClass = 'status-offline';
-    var statusText = 'Offline';
+    var rtspBlock = '';
     if (camera.rtspUrl) {
-      statusClass = 'status-online';
-      statusText = 'Online';
+      rtspBlock =
+        '<div class="detail-group">' +
+          '<div class="detail-group-title">Stream</div>' +
+          '<div class="detail-row">' +
+            '<span class="detail-label">RTSP</span>' +
+            '<span class="detail-value" id="detail-rtsp" style="font-size:11px">' + this.esc(camera.rtspUrl) + '</span>' +
+          '</div>' +
+        '</div>';
     }
 
     body.innerHTML =
@@ -202,62 +210,101 @@ class PreviewManager {
         '<div class="detail-group-title">Camera</div>' +
         '<div class="detail-row">' +
           '<span class="detail-label">Name</span>' +
-          '<span class="detail-value">' + this.esc(camera.name) + '</span>' +
+          '<span class="detail-value" id="detail-name">' + this.esc(camera.name) + '</span>' +
         '</div>' +
         '<div class="detail-row">' +
           '<span class="detail-label">ID</span>' +
-          '<span class="detail-value">' + this.esc(camera.id) + '</span>' +
+          '<span class="detail-value" id="detail-id">' + this.esc(camera.id) + '</span>' +
         '</div>' +
         '<div class="detail-row">' +
           '<span class="detail-label">Status</span>' +
-          '<span class="detail-value ' + statusClass + '">' + statusText + '</span>' +
+          '<span class="detail-value" id="detail-status">Offline</span>' +
         '</div>' +
       '</div>' +
       '<div class="detail-group">' +
         '<div class="detail-group-title">Position</div>' +
         '<div class="detail-row">' +
           '<span class="detail-label">X</span>' +
-          '<span class="detail-value">' + Math.round(camera.x) + '</span>' +
+          '<span class="detail-value" id="detail-pos-x">-</span>' +
         '</div>' +
         '<div class="detail-row">' +
           '<span class="detail-label">Y</span>' +
-          '<span class="detail-value">' + Math.round(camera.y) + '</span>' +
+          '<span class="detail-value" id="detail-pos-y">-</span>' +
         '</div>' +
       '</div>' +
       '<div class="detail-group">' +
         '<div class="detail-group-title">Field of View</div>' +
         '<div class="detail-row">' +
           '<span class="detail-label">Angle</span>' +
-          '<span class="detail-value">' + Math.round(camera.angle) + '&deg;</span>' +
+          '<span class="detail-value" id="detail-angle">-</span>' +
         '</div>' +
         '<div class="detail-row">' +
           '<span class="detail-label">Cone Width</span>' +
-          '<span class="detail-value">' + Math.round(camera.coneWidth) + '&deg;</span>' +
+          '<span class="detail-value" id="detail-cone-w">-</span>' +
         '</div>' +
         '<div class="detail-row">' +
           '<span class="detail-label">Cone Length</span>' +
-          '<span class="detail-value">' + Math.round(camera.coneLength) + 'px</span>' +
+          '<span class="detail-value" id="detail-cone-l">-</span>' +
         '</div>' +
-      '</div>';
-
-    if (camera.rtspUrl) {
-      body.innerHTML +=
-        '<div class="detail-group">' +
-          '<div class="detail-group-title">Stream</div>' +
-          '<div class="detail-row">' +
-            '<span class="detail-label">RTSP</span>' +
-            '<span class="detail-value" style="font-size:11px">' + this.esc(camera.rtspUrl) + '</span>' +
-          '</div>' +
-        '</div>';
-    }
+      '</div>' + rtspBlock;
 
     panel.classList.add('active');
+    this.startDetailsUpdates(camera.id);
   }
 
   hideCameraDetails() {
+    this.stopDetailsUpdates();
     var panel = document.getElementById('cameraDetails');
     if (panel) panel.classList.remove('active');
     if (window.cameraManager) window.cameraManager.deselect();
+  }
+
+  startDetailsUpdates(cameraId) {
+    this.stopDetailsUpdates();
+    this.detailsCameraId = cameraId;
+    this.updateCameraDetails();
+    this.detailsUpdateTimer = setInterval(() => this.updateCameraDetails(), 100);
+  }
+
+  stopDetailsUpdates() {
+    if (this.detailsUpdateTimer) {
+      clearInterval(this.detailsUpdateTimer);
+      this.detailsUpdateTimer = null;
+    }
+    this.detailsCameraId = null;
+  }
+
+  updateCameraDetails() {
+    if (!this.detailsCameraId || !window.cameraManager) return;
+    var cam = window.cameraManager.getCamera(this.detailsCameraId);
+    if (!cam) return;
+
+    var el = function (id) { return document.getElementById(id); };
+
+    var statusEl = el('detail-status');
+    if (statusEl) {
+      var isOnline = !!cam.rtspUrl;
+      statusEl.textContent = isOnline ? 'Online' : 'Offline';
+      statusEl.className = 'detail-value ' + (isOnline ? 'status-online' : 'status-offline');
+    }
+
+    var xEl = el('detail-pos-x');
+    if (xEl) xEl.textContent = Math.round(cam.x);
+
+    var yEl = el('detail-pos-y');
+    if (yEl) yEl.textContent = Math.round(cam.y);
+
+    var aEl = el('detail-angle');
+    if (aEl) aEl.textContent = Math.round(cam.angle) + '\u00B0';
+
+    var cwEl = el('detail-cone-w');
+    if (cwEl) cwEl.textContent = Math.round(cam.coneWidth) + '\u00B0';
+
+    var clEl = el('detail-cone-l');
+    if (clEl) clEl.textContent = Math.round(cam.coneLength) + 'px';
+
+    var rtspEl = el('detail-rtsp');
+    if (rtspEl && cam.rtspUrl) rtspEl.textContent = cam.rtspUrl;
   }
 
   esc(str) {
