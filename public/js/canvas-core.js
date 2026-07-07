@@ -13,6 +13,7 @@ class CanvasEngine {
 
     this.dragState = { active: false, type: 'none', startMouseX: 0, startMouseY: 0, startOffsetX: 0, startOffsetY: 0, cameraId: null };
     this.clickCandidate = false;
+    this.wasSelected = false;
 
     this.cameraManager = null;
     this.previewManager = null;
@@ -74,6 +75,7 @@ class CanvasEngine {
 
       const iconHit = this.cameraManager.hitTestIcon(pos.x, pos.y);
       if (iconHit) {
+        this.wasSelected = this.cameraManager.selectedCameraId === iconHit.id;
         this.cameraManager.select(iconHit.id);
         this.dragState = { active: true, type: 'icon-move', startMouseX: e.clientX, startMouseY: e.clientY, cameraId: iconHit.id };
         this.clickCandidate = true;
@@ -153,9 +155,11 @@ class CanvasEngine {
       this.clickCandidate = false;
       const cam = this.cameraManager.getCamera(this.dragState.cameraId);
       if (cam) {
-        this.cameraManager.select(cam.id);
-        if (this.previewManager) {
-          this.previewManager.enterFullPreview(cam);
+        if (this.wasSelected) {
+          this.cameraManager.select(cam.id);
+          if (this.previewManager) {
+            this.previewManager.enterFullPreview(cam);
+          }
         }
       }
     }
