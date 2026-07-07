@@ -10,22 +10,19 @@ class PreviewManager {
     this.fullCanvas = document.getElementById('fullCanvas');
     this.fullPreviewOverlay = document.getElementById('fullPreviewOverlay');
     this.fullPreviewTitle = document.getElementById('fullPreviewTitle');
+    this.streamStatus = document.getElementById('streamStatus');
     this.closeBtn = document.getElementById('closePreviewBtn');
     this.pipExitArea = document.getElementById('pipExitArea');
+    this.noStreamMsg = document.getElementById('noStreamMsg');
 
-    this.pipExitArea.addEventListener('click', (e) => {
-      this.exitFullPreview();
-    });
-
+    this.pipExitArea.addEventListener('click', (e) => this.exitFullPreview());
     this.closeBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       this.exitFullPreview();
     });
 
     this.fullPreviewOverlay.addEventListener('click', (e) => {
-      if (e.target === this.fullPreviewOverlay) {
-        this.exitFullPreview();
-      }
+      if (e.target === this.fullPreviewOverlay) this.exitFullPreview();
     });
 
     document.addEventListener('keydown', (e) => {
@@ -75,14 +72,13 @@ class PreviewManager {
 
     document.body.classList.add('pip-mode');
     this.fullPreviewTitle.textContent = camera.name;
-
+    this.setStreamStatus('connecting');
     this.fullPreviewOverlay.classList.add('active');
 
     const container = document.getElementById('fullPreviewInner');
-    const noStream = document.getElementById('noStreamMsg');
 
     if (camera.rtspUrl) {
-      noStream.style.display = 'none';
+      this.noStreamMsg.style.display = 'none';
       this.fullCanvas.style.display = 'block';
       this.fullCanvas.width = container.clientWidth;
       this.fullCanvas.height = container.clientHeight;
@@ -90,14 +86,16 @@ class PreviewManager {
       this.startFullStream(camera);
     } else {
       this.fullCanvas.style.display = 'none';
-      noStream.style.display = 'block';
+      this.noStreamMsg.style.display = 'block';
+      this.setStreamStatus('none');
     }
   }
 
   exitFullPreview() {
     document.body.classList.remove('pip-mode');
     this.fullPreviewOverlay.classList.remove('active');
-    document.getElementById('noStreamMsg').style.display = 'none';
+    this.noStreamMsg.style.display = 'none';
+    this.setStreamStatus('');
 
     if (this.fullPlayer) {
       this.destroyPlayer(this.fullPlayer);
@@ -109,40 +107,63 @@ class PreviewManager {
     }
   }
 
+  setStreamStatus(state) {
+    var el = this.streamStatus;
+    if (!el) return;
+    el.className = 'status-' + state;
+    var texts = { connecting: 'Connecting...', connected: 'Live', error: 'Stream error', none: '' };
+    el.textContent = texts[state] || '';
+  }
+
+  createPlayer(url, canvas) {
+    return new Promise(function (resolve, reject) {
+      if (typeof loadPlayer === 'function') {
+        loadPlayer({ url: url, canvas: canvas, audio: false, videoBufferSize: 1024 * 1024 })
+          .then(resolve)
+          .catch(reject);
+      } else if (typeof JSMpeg !== 'undefined' && JSMpeg && JSMpeg.Player) {
+        var player = new JSMpeg.Player(url, {
+          canvas: canvas,
+          audio: false,
+          videoBufferSize: 1024 * 1024,
+          onSourceEstablished: function () { resolve(player); },
+          onError: function () { reject(new Error('JSMpeg connection error')); },
+        });
+      } else {
+        reject(new Error('Streaming library not available (JSMpeg/loadPlayer)'));
+      }
+    });
+  }
+
   startHoverStream(camera) {
     if (!camera.rtspUrl) {
       this.drawPlaceholder(this.hoverCanvas, 'No stream');
       return;
     }
 
-    try {
-      const wsUrl = (location.protocol === 'https:' ? 'wss' : 'ws') + '://' + location.host + '/stream/' + camera.id;
-      loadPlayer({
-        url: wsUrl,
-        canvas: this.hoverCanvas,
-        audio: false,
-        videoBufferSize: 512 * 1024,
-      }).then((player) => {
-        this.hoverPlayer = player;
-      }).catch(() => {});
-    } catch (e) {}
+    var wsUrl = (location.protocol === 'https:' ? 'wss' : 'ws') + '://' + location.host + '/stream/' + camera.id;
+    var self = this;
+
+    this.createPlayer(wsUrl, this.hoverCanvas).then(function (player) {
+      self.hoverPlayer = player;
+    }).catch(function () {
+      self.drawPlaceholder(self.hoverCanvas, 'Stream unavailable');
+    });
   }
 
   startFullStream(camera) {
     if (!camera.rtspUrl) return;
 
-    try {
-      const wsUrl = (location.protocol === 'https:' ? 'wss' : 'ws') + '://' + location.host + '/stream/' + camera.id;
-      loadPlayer({
-        url: wsUrl,
-        canvas: this.fullCanvas,
-        audio: false,
-        videoBufferSize: 1024 * 1024,
-      }).then((player) => {
-        if (this.fullPlayer) this.destroyPlayer(this.fullPlayer);
-        this.fullPlayer = player;
-      }).catch(() => {});
-    } catch (e) {}
+    var wsUrl = (location.protocol === 'https:' ? 'wss' : 'ws') + '://' + location.host + '/stream/' + camera.id;
+    var self = this;
+
+    this.createPlayer(wsUrl, this.fullCanvas).then(function (player) {
+      if (self.fullPlayer) self.destroyPlayer(self.fullPlayer);
+      self.fullPlayer = player;
+      self.setStreamStatus('connected');
+    }).catch(function (err) {
+      self.setStreamStatus('error');
+    });
   }
 
   destroyPlayer(player) {

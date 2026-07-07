@@ -22,17 +22,22 @@ try {
   console.warn('No cameras.json found, using empty config');
 }
 
-cameras.forEach((cam) => {
-  if (cam.rtspUrl) {
-    app.ws(`/stream/${cam.id}`, proxy({
-      url: cam.rtspUrl,
-      verbose: false,
-    }));
+app.ws('/stream/:id', (ws, req) => {
+  const cam = cameras.find(c => c.id === req.params.id);
+  if (!cam) {
+    ws.close(1008, 'Camera not found');
+    return;
   }
+  if (!cam.rtspUrl) {
+    ws.close(1008, 'No RTSP URL configured');
+    return;
+  }
+  const handler = proxy({ url: cam.rtspUrl, verbose: false });
+  handler(ws, req);
 });
 
 app.get('/', (req, res) => {
-  res.render('index', { cameras, scriptUrl });
+  res.render('index', { cameras });
 });
 
 app.get('/api/cameras', (req, res) => {
