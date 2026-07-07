@@ -1,0 +1,32 @@
+{
+  "name": "cctv_module",
+  "version": "1.0.0",
+  "description": "A node js module that will show cctv on a plan",
+  "main": "index.js",
+  "scripts": {
+    "test": "test",
+    "dev": "node index.js --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fatinul/cctv_plan.git"
+  },
+  "keywords": [
+    "cctv",
+    "automation",
+    "home",
+    "plan"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/fatinul/cctv_plan/issues"
+  },
+  "homepage": "https://github.com/fatinul/cctv_plan#readme",
+  "dependencies": {
+    "ejs": "^6.0.1",
+    "express": "^5.2.1",
+    "express-ws": "^5.0.2",
+    "rtsp-relay": "^1.9.0"
+  }
+}

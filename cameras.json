@@ -1,0 +1,46 @@
+[
+  {
+    "id": "cam1",
+    "name": "Main Entrance",
+    "rtspUrl": "rtsp://admin:Flink0164199907@192.168.100.235:554/Preview_01_sub",
+    "x": 135.7150917464767,
+    "y": 651.7739506462407,
+    "angle": 279.9868109789399,
+    "coneWidth": 111.54499904157433,
+    "coneLength": 100.09613854761655,
+    "color": "rgba(255, 200, 50, 0.3)"
+  },
+  {
+    "id": "cam2",
+    "name": "Lobby",
+    "rtspUrl": "",
+    "x": 326.26673639503383,
+    "y": 651.2630944766239,
+    "angle": 300.3490921524902,
+    "coneWidth": 90,
+    "coneLength": 180,
+    "color": "rgba(50, 200, 255, 0.3)"
+  },
+  {
+    "id": "cam3",
+    "name": "Corridor A",
+    "rtspUrl": "",
+    "x": 140.15981411833133,
+    "y": 138.2477950014485,
+    "angle": 45,
+    "coneWidth": 60,
+    "coneLength": 250,
+    "color": "rgba(50, 255, 100, 0.3)"
+  },
+  {
+    "id": "cam4",
+    "name": "Parking Lot",
+    "rtspUrl": "",
+    "x": 672.1333596342797,
+    "y": 131.6745657822751,
+    "angle": 135,
+    "coneWidth": 100,
+    "coneLength": 300,
+    "color": "rgba(255, 100, 100, 0.3)"
+  }
+]

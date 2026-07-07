@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" width="1200" height="800">
+  <rect width="1200" height="800" fill="#1a1a2e"/>
+
+  <!-- Outer wall -->
+  <rect x="40" y="40" width="1120" height="720" fill="none" stroke="#3a3a5c" stroke-width="4"/>
+  <rect x="48" y="48" width="1104" height="704" fill="#222244" stroke="#3a3a5c" stroke-width="1"/>
+
+  <!-- Entrance -->
+  <rect x="540" y="36" width="120" height="16" fill="#1a5a2e" stroke="#2a8a4e" stroke-width="2"/>
+  <text x="600" y="48" fill="#4a8a6e" font-size="8" text-anchor="middle" font-family="monospace">ENTRANCE</text>
+
+  <!-- Reception/Lobby -->
+  <rect x="440" y="60" width="320" height="180" fill="#2a2a4e" stroke="#4a4a7c" stroke-width="2"/>
+  <text x="600" y="155" fill="#6a6a9c" font-size="14" text-anchor="middle" font-family="monospace">LOBBY</text>
+
+  <!-- Corridor A -->
+  <rect x="60" y="60" width="340" height="120" fill="#222244" stroke="#3a3a5c" stroke-width="2"/>
+  <text x="230" y="125" fill="#5a5a8c" font-size="12" text-anchor="middle" font-family="monospace">CORRIDOR A</text>
+
+  <!-- Room 101 -->
+  <rect x="60" y="200" width="160" height="140" fill="#1e1e3e" stroke="#3a3a5c" stroke-width="1.5"/>
+  <text x="140" y="275" fill="#5a5a8c" font-size="10" text-anchor="middle" font-family="monospace">ROOM 101</text>
+
+  <!-- Room 102 -->
+  <rect x="230" y="200" width="170" height="140" fill="#1e1e3e" stroke="#3a3a5c" stroke-width="1.5"/>
+  <text x="315" y="275" fill="#5a5a8c" font-size="10" text-anchor="middle" font-family="monospace">ROOM 102</text>
+
+  <!-- Room 103 -->
+  <rect x="60" y="360" width="160" height="140" fill="#1e1e3e" stroke="#3a3a5c" stroke-width="1.5"/>
+  <text x="140" y="435" fill="#5a5a8c" font-size="10" text-anchor="middle" font-family="monospace">ROOM 103</text>
+
+  <!-- Room 104 -->
+  <rect x="230" y="360" width="170" height="140" fill="#1e1e3e" stroke="#3a3a5c" stroke-width="1.5"/>
+  <text x="315" y="435" fill="#5a5a8c" font-size="10" text-anchor="middle" font-family="monospace">ROOM 104</text>
+
+  <!-- Corridor B (right side) -->
+  <rect x="800" y="60" width="300" height="120" fill="#222244" stroke="#3a3a5c" stroke-width="2"/>
+  <text x="950" y="125" fill="#5a5a8c" font-size="12" text-anchor="middle" font-family="monospace">CORRIDOR B</text>
+
+  <!-- Office 1 -->
+  <rect x="800" y="200" width="140" height="140" fill="#1e1e3e" stroke="#3a3a5c" stroke-width="1.5"/>
+  <text x="870" y="275" fill="#5a5a8c" font-size="10" text-anchor="middle" font-family="monospace">OFFICE 1</text>
+
+  <!-- Office 2 -->
+  <rect x="950" y="200" width="150" height="140" fill="#1e1e3e" stroke="#3a3a5c" stroke-width="1.5"/>
+  <text x="1025" y="275" fill="#5a5a8c" font-size="10" text-anchor="middle" font-family="monospace">OFFICE 2</text>
+
+  <!-- Server Room -->
+  <rect x="800" y="360" width="150" height="140" fill="#1e303e" stroke="#3a6a8c" stroke-width="1.5"/>
+  <text x="875" y="435" fill="#5a8aac" font-size="10" text-anchor="middle" font-family="monospace">SERVER RM</text>
+
+  <!-- Storage -->
+  <rect x="960" y="360" width="140" height="140" fill="#1e1e3e" stroke="#3a3a5c" stroke-width="1.5"/>
+  <text x="1030" y="435" fill="#5a5a8c" font-size="10" text-anchor="middle" font-family="monospace">STORAGE</text>
+
+  <!-- Meeting Room -->
+  <rect x="440" y="260" width="150" height="120" fill="#1e2e3e" stroke="#3a5a7c" stroke-width="1.5"/>
+  <text x="515" y="325" fill="#5a7a9c" font-size="10" text-anchor="middle" font-family="monospace">MEETING</text>
+
+  <!-- Break Room -->
+  <rect x="610" y="260" width="150" height="120" fill="#1e2e3e" stroke="#3a5a7c" stroke-width="1.5"/>
+  <text x="685" y="325" fill="#5a7a9c" font-size="10" text-anchor="middle" font-family="monospace">BREAK RM</text>
+
+  <!-- Lower lobby -->
+  <rect x="440" y="400" width="320" height="100" fill="#222244" stroke="#3a3a5c" stroke-width="1.5"/>
+  <text x="600" y="455" fill="#5a5a8c" font-size="12" text-anchor="middle" font-family="monospace">RECEPTION</text>
+
+  <!-- Back rooms -->
+  <rect x="440" y="520" width="150" height="100" fill="#1e1e3e" stroke="#3a3a5c" stroke-width="1.5"/>
+  <text x="515" y="575" fill="#5a5a8c" font-size="10" text-anchor="middle" font-family="monospace">IT ROOM</text>
+
+  <rect x="610" y="520" width="150" height="100" fill="#1e1e3e" stroke="#3a3a5c" stroke-width="1.5"/>
+  <text x="685" y="575" fill="#5a5a8c" font-size="10" text-anchor="middle" font-family="monospace">ARCHIVE</text>
+
+  <!-- Back exit -->
+  <rect x="540" y="740" width="120" height="16" fill="#1a5a2e" stroke="#2a8a4e" stroke-width="2"/>
+  <text x="600" y="752" fill="#4a8a6e" font-size="8" text-anchor="middle" font-family="monospace">EXIT</text>
+
+  <!-- Kitchen/Cafeteria -->
+  <rect x="440" y="640" width="320" height="80" fill="#1e1e3e" stroke="#3a3a5c" stroke-width="1.5"/>
+  <text x="600" y="685" fill="#5a5a8c" font-size="10" text-anchor="middle" font-family="monospace">CAFETERIA</text>
+
+  <!-- Top-right corridor -->
+  <rect x="800" y="520" width="300" height="80" fill="#222244" stroke="#3a3a5c" stroke-width="1.5"/>
+  <text x="950" y="565" fill="#5a5a8c" font-size="10" text-anchor="middle" font-family="monospace">CORRIDOR C</text>
+
+  <!-- Lab -->
+  <rect x="800" y="620" width="140" height="100" fill="#1e1e3e" stroke="#3a3a5c" stroke-width="1.5"/>
+  <text x="870" y="675" fill="#5a5a8c" font-size="10" text-anchor="middle" font-family="monospace">LAB</text>
+
+  <!-- Conference -->
+  <rect x="950" y="620" width="150" height="100" fill="#1e2e3e" stroke="#3a5a7c" stroke-width="1.5"/>
+  <text x="1025" y="675" fill="#5a7a9c" font-size="10" text-anchor="middle" font-family="monospace">CONFERENCE</text>
+
+  <!-- Compass -->
+  <circle cx="90" cy="750" r="20" fill="none" stroke="#4a4a6c" stroke-width="1.5"/>
+  <polygon points="90,728 84,745 96,745" fill="#cc4444"/>
+  <polygon points="90,772 84,755 96,755" fill="#4a4a6c"/>
+  <text x="90" y="724" fill="#cc4444" font-size="8" text-anchor="middle" font-weight="bold" font-family="monospace">N</text>
+</svg>

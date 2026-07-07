@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CCTV Building Plan</title>
+  <link rel="stylesheet" href="/public/css/style.css">
+</head>
+<body>
+  <div id="mapContainer">
+    <canvas id="mapCanvas"></canvas>
+    <div id="pipExitArea" title="Click to exit full preview"></div>
+  </div>
+
+  <div id="hoverPreview">
+    <canvas id="hoverCanvas" width="200" height="150"></canvas>
+  </div>
+
+  <div id="fullPreviewOverlay">
+    <button id="closePreviewBtn">&times;</button>
+    <div id="fullPreviewInner">
+      <div id="fullPreviewHeader">
+        <span id="fullPreviewTitle">Camera</span>
+      </div>
+      <canvas id="fullCanvas"></canvas>
+      <div id="noStreamMsg">No stream configured</div>
+    </div>
+  </div>
+
+  <script>
+    window.__CAMERAS__ = <%- JSON.stringify(cameras) %>;
+  </script>
+  <script src="<%= scriptUrl %>"></script>
+  <script src="/public/js/canvas-core.js"></script>
+  <script src="/public/js/camera-manager.js"></script>
+  <script src="/public/js/preview.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var iconImg = new Image();
+      iconImg.onload = function () {
+        var engine = new CanvasEngine('mapCanvas');
+        var camManager = new CameraManager(window.__CAMERAS__, iconImg);
+        var preview = new PreviewManager();
+
+        engine.cameraManager = camManager;
+        engine.previewManager = preview;
+
+        window.canvasEngine = engine;
+        window.cameraManager = camManager;
+
+        engine.loadPlanImage('/images/oc.png');
+        engine.fitToContent();
+      };
+      iconImg.src = '/public/img/camera-icon.svg';
+    });
+  </script>
+</body>
+</html>
