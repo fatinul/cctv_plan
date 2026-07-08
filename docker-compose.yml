@@ -1,0 +1,59 @@
+services:
+  mqtt:
+    image: eclipse-mosquitto:2
+    container_name: mqtt
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./mqtt/config:/mosquitto/config
+      - ./mqtt/data:/mosquitto/data
+      - ./mqtt/log:/mosquitto/log
+
+  frigate:
+    image: ghcr.io/blakeblackshear/frigate:stable
+    container_name: frigate
+    restart: unless-stopped
+    privileged: true
+    shm_size: "256mb"
+    ports:
+      - "5000:5000"
+      - "8971:8971"
+      - "8555:8555/tcp"
+      - "8555:8555/udp"
+      - "1984:1984"
+    volumes:
+      - ./frigate/config:/config
+      - ./frigate/storage:/media/frigate
+      - ./frigate/recordings:/recordings
+      - /etc/localtime:/etc/localtime:ro
+      - type: tmpfs
+        target: /tmp/cache
+        tmpfs:
+          size: 1000000000
+    environment:
+      FRIGATE_RTSP_PASSWORD: "Flink0164199907"
+      PLUS_API_KEY: ""
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
+    depends_on:
+      - mqtt
+
+  cctv-app:
+    build: .
+    container_name: cctv-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./cameras.json:/app/cameras.json
+      - ./images:/app/images
+      - ./public:/app/public
+      - ./views:/app/views
+    environment:
+      PORT: "3000"
+      FRIGATE_URL: "http://localhost:8971"
+      GO2RTC_INTERNAL_URL: "http://frigate:1984"
+    depends_on:
+      - frigate

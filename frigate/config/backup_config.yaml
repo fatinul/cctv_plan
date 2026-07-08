@@ -1,0 +1,137 @@
+mqtt:
+  enabled: true
+  host: mqtt
+  port: 1883
+  topic_prefix: frigate
+  client_id: frigate
+
+database:
+  path: /config/frigate.db
+
+record:
+  enabled: true
+  alerts:
+    retain:
+      days: 14
+  detections:
+    retain:
+      days: 14
+  continuous:
+    days: 7
+
+snapshots:
+  enabled: true
+  retain:
+    default: 14
+
+ffmpeg:
+  hwaccel_args: preset-vaapi
+  input_args: preset-rtsp-restream
+
+detectors:
+  cpu1:
+    type: cpu
+    num_threads: 3
+
+birdseye:
+  enabled: true
+  mode: continuous
+
+go2rtc:
+  streams:
+    cam1: rtsp://admin:Flink0164199907@192.168.100.235:554/Preview_01_sub
+    cam2: rtsp://admin:Flink0164199907@192.168.100.106:554/Preview_01_sub
+  webrtc:
+    candidates:
+      - stun:8555
+
+cameras:
+  cam1:
+    enabled: true
+    ffmpeg:
+      inputs:
+        - path: rtsp://admin:Flink0164199907@192.168.100.235:554/Preview_01_sub
+          input_args: preset-rtsp-restream
+          roles:
+            - detect
+            - record
+    detect:
+      enabled: true
+      width: 640
+      height: 360
+      fps: 5
+    record:
+      enabled: true
+      alerts:
+        pre_capture: 5
+        post_capture: 5
+      detections:
+        pre_capture: 5
+        post_capture: 5
+    snapshots:
+      enabled: true
+      timestamp: true
+      bounding_box: true
+    motion:
+      threshold: 30
+      contour_area: 10
+    objects:
+      track:
+        - person
+        - car
+        - bicycle
+        - motorcycle
+        - dog
+        - cat
+    zones:
+      front_door:
+        coordinates:
+          - 0.3, 0.5
+          - 0.7, 0.5
+          - 0.7, 1
+          - 0.3, 1
+
+  cam2:
+    enabled: true
+    ffmpeg:
+      inputs:
+        - path: rtsp://admin:Flink0164199907@192.168.100.106:554/Preview_01_sub
+          input_args: preset-rtsp-restream
+          roles:
+            - detect
+            - record
+    detect:
+      enabled: true
+      width: 640
+      height: 360
+      fps: 5
+    record:
+      enabled: true
+      alerts:
+        pre_capture: 5
+        post_capture: 5
+      detections:
+        pre_capture: 5
+        post_capture: 5
+    snapshots:
+      enabled: true
+      timestamp: true
+      bounding_box: true
+    motion:
+      threshold: 30
+      contour_area: 10
+    objects:
+      track:
+        - person
+        - car
+        - bicycle
+        - motorcycle
+        - dog
+        - cat
+    zones:
+      lobby_area:
+        coordinates:
+          - 0.3, 0.5
+          - 0.7, 0.5
+          - 0.7, 1
+          - 0.3, 1

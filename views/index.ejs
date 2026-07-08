@@ -35,9 +35,10 @@
 
   <script>
     window.__CAMERAS__ = <%- JSON.stringify(cameras) %>;
+    window.__FRIGATE_URL__ = '<%= frigateUrl %>';
+    window.__GO2RTC_URL__ = 'http://localhost:1984';
   </script>
-  <script src="https://cdn.jsdelivr.net/gh/phoboslab/jsmpeg@b5799bf/jsmpeg.min.js"></script>
-  <script src="/public/js/rtsp-relay-browser.js"></script>
+  <!-- hls.js removed — using go2rtc iframe player instead -->
   <script src="/public/js/canvas-core.js"></script>
   <script src="/public/js/camera-manager.js"></script>
   <script src="/public/js/preview.js"></script>

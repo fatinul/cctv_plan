@@ -2,13 +2,12 @@ class PreviewManager {
   constructor() {
     this.hoverTimer = null;
     this.hoverCamera = null;
-    this.hoverPlayer = null;
     this.fullPlayer = null;
 
-    this.hoverCanvas = document.getElementById('hoverCanvas');
     this.hoverPreview = document.getElementById('hoverPreview');
     this.fullCanvas = document.getElementById('fullCanvas');
     this.fullPreviewOverlay = document.getElementById('fullPreviewOverlay');
+    this.fullPreviewInner = document.getElementById('fullPreviewInner');
     this.fullPreviewTitle = document.getElementById('fullPreviewTitle');
     this.streamStatus = document.getElementById('streamStatus');
     this.closeBtn = document.getElementById('closePreviewBtn');
@@ -18,7 +17,18 @@ class PreviewManager {
     this.detailsUpdateTimer = null;
     this.detailsCameraId = null;
 
-    this.pipExitArea.addEventListener('click', (e) => this.exitFullPreview());
+    // Replace hoverCanvas with an iframe container
+    var hoverCanvas = document.getElementById('hoverCanvas');
+    if (hoverCanvas) {
+      this.hoverIframeContainer = document.createElement('div');
+      this.hoverIframeContainer.style.cssText = 'width:240px;height:180px;background:#000;overflow:hidden;border-radius:4px;';
+      hoverCanvas.parentNode.replaceChild(this.hoverIframeContainer, hoverCanvas);
+    }
+
+    // Hide fullCanvas — we use iframe instead
+    if (this.fullCanvas) this.fullCanvas.style.display = 'none';
+
+    this.pipExitArea.addEventListener('click', () => this.exitFullPreview());
     this.closeBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       this.exitFullPreview();
@@ -38,6 +48,15 @@ class PreviewManager {
     });
   }
 
+  // ── go2rtc URL helper ───────────────────────────────────────────────────────
+  getStreamUrl(cameraId, width, height) {
+    var base = window.__GO2RTC_URL__ || 'http://localhost:1984';
+    var url = base + '/stream.html?src=' + encodeURIComponent(cameraId) + '&mode=webrtc,mse,hls,mjpeg';
+    if (width) url += '&width=' + width;
+    return url;
+  }
+
+  // ── Hover preview ───────────────────────────────────────────────────────────
   showHoverPreview(camera, mouseX, mouseY) {
     if (this.hoverCamera && this.hoverCamera.id === camera.id) return;
     this.hideHoverPreview();
@@ -46,17 +65,30 @@ class PreviewManager {
     this.hoverTimer = setTimeout(() => {
       this.hoverTimer = null;
 
+      // Position the preview box
       let x = mouseX + 16;
       let y = mouseY + 16;
-      if (x + 250 > window.innerWidth) x = mouseX - 250;
-      if (y + 190 > window.innerHeight) y = mouseY - 190;
+      if (x + 220 > window.innerWidth) x = mouseX - 220;
+      if (y + 170 > window.innerHeight) y = mouseY - 170;
 
       this.hoverPreview.style.left = x + 'px';
       this.hoverPreview.style.top = y + 'px';
       this.hoverPreview.style.display = 'block';
 
-      this.startHoverStream(camera);
-    }, 300);
+      // Load stream in hover iframe
+      if (this.hoverIframeContainer) {
+        this.hoverIframeContainer.innerHTML = '';
+        if (camera.rtspUrl) {
+          var iframe = document.createElement('iframe');
+          iframe.src = this.getStreamUrl(camera.id, 200);
+          iframe.style.cssText = 'width:240px;height:180px;border:none;display:block;';
+          iframe.allow = 'autoplay';
+          this.hoverIframeContainer.appendChild(iframe);
+        } else {
+          this.hoverIframeContainer.innerHTML = '<div style="color:rgba(255,255,255,0.4);font-size:11px;text-align:center;padding-top:60px;">No stream</div>';
+        }
+      }
+    }, 500);
   }
 
   hideHoverPreview() {
@@ -66,34 +98,33 @@ class PreviewManager {
     }
     this.hoverCamera = null;
     this.hoverPreview.style.display = 'none';
-    this.destroyPlayer(this.hoverPlayer);
-    this.hoverPlayer = null;
+
+    // Stop hover stream
+    if (this.hoverIframeContainer) {
+      var iframe = this.hoverIframeContainer.querySelector('iframe');
+      if (iframe) iframe.src = '';
+      this.hoverIframeContainer.innerHTML = '';
+    }
   }
 
+  // ── Full preview ────────────────────────────────────────────────────────────
   enterFullPreview(camera) {
     this.hideHoverPreview();
-
-    if (this.fullPlayer) {
-      this.destroyPlayer(this.fullPlayer);
-      this.fullPlayer = null;
-    }
+    this.destroyPlayer(this.fullPlayer);
+    this.fullPlayer = null;
 
     document.body.classList.add('pip-mode');
     this.fullPreviewTitle.textContent = camera.name;
-    this.setStreamStatus('connecting');
     this.fullPreviewOverlay.classList.add('active');
 
-    const container = document.getElementById('fullPreviewInner');
+    // Hide canvas and noStreamMsg initially
+    if (this.fullCanvas) this.fullCanvas.style.display = 'none';
+    this.noStreamMsg.style.display = 'none';
 
     if (camera.rtspUrl) {
-      this.noStreamMsg.style.display = 'none';
-      this.fullCanvas.style.display = 'block';
-      this.fullCanvas.width = container.clientWidth;
-      this.fullCanvas.height = container.clientHeight;
-
+      this.setStreamStatus('connecting');
       this.startFullStream(camera);
     } else {
-      this.fullCanvas.style.display = 'none';
       this.noStreamMsg.style.display = 'block';
       this.setStreamStatus('none');
     }
@@ -105,13 +136,52 @@ class PreviewManager {
     this.noStreamMsg.style.display = 'none';
     this.setStreamStatus('');
 
-    if (this.fullPlayer) {
-      this.destroyPlayer(this.fullPlayer);
-      this.fullPlayer = null;
+    this.destroyPlayer(this.fullPlayer);
+    this.fullPlayer = null;
+
+    if (window.cameraManager) window.cameraManager.deselect();
+  }
+
+  startFullStream(camera) {
+    // Remove any existing iframe
+    var existing = this.fullPreviewInner.querySelector('iframe');
+    if (existing) {
+      existing.src = '';
+      existing.parentNode.removeChild(existing);
     }
 
-    if (window.cameraManager) {
-      window.cameraManager.deselect();
+    var self = this;
+    var iframe = document.createElement('iframe');
+    iframe.src = this.getStreamUrl(camera.id);
+    iframe.style.cssText = [
+      'position:absolute',
+      'top:0',
+      'left:0',
+      'width:100%',
+      'height:100%',
+      'border:none',
+      'background:#000',
+      'z-index:1',
+    ].join(';');
+    iframe.allow = 'autoplay; fullscreen';
+    iframe.setAttribute('allowfullscreen', '');
+
+    iframe.onload = function () {
+      self.setStreamStatus('connected');
+    };
+
+    // Make fullPreviewInner position:relative so iframe fills it
+    this.fullPreviewInner.style.position = 'relative';
+    this.fullPreviewInner.appendChild(iframe);
+
+    this.fullPlayer = { type: 'iframe', iframe: iframe };
+  }
+
+  destroyPlayer(player) {
+    if (!player) return;
+    if (player.type === 'iframe' && player.iframe) {
+      player.iframe.src = '';
+      if (player.iframe.parentNode) player.iframe.parentNode.removeChild(player.iframe);
     }
   }
 
@@ -123,71 +193,7 @@ class PreviewManager {
     el.textContent = texts[state] || '';
   }
 
-  createPlayer(url, canvas) {
-    return new Promise(function (resolve, reject) {
-      if (typeof loadPlayer === 'function') {
-        loadPlayer({ url: url, canvas: canvas, audio: false, videoBufferSize: 1024 * 1024 })
-          .then(resolve)
-          .catch(reject);
-      } else if (typeof JSMpeg !== 'undefined' && JSMpeg && JSMpeg.Player) {
-        var player = new JSMpeg.Player(url, {
-          canvas: canvas,
-          audio: false,
-          videoBufferSize: 1024 * 1024,
-          onSourceEstablished: function () { resolve(player); },
-          onError: function () { reject(new Error('JSMpeg connection error')); },
-        });
-      } else {
-        reject(new Error('Streaming library not available (JSMpeg/loadPlayer)'));
-      }
-    });
-  }
-
-  startHoverStream(camera) {
-    if (!camera.rtspUrl) {
-      this.drawPlaceholder(this.hoverCanvas, 'No stream');
-      return;
-    }
-
-    var wsUrl = (location.protocol === 'https:' ? 'wss' : 'ws') + '://' + location.host + '/stream/' + camera.id;
-    var self = this;
-
-    this.createPlayer(wsUrl, this.hoverCanvas).then(function (player) {
-      self.hoverPlayer = player;
-    }).catch(function () {
-      self.drawPlaceholder(self.hoverCanvas, 'Stream unavailable');
-    });
-  }
-
-  startFullStream(camera) {
-    if (!camera.rtspUrl) return;
-
-    var wsUrl = (location.protocol === 'https:' ? 'wss' : 'ws') + '://' + location.host + '/stream/' + camera.id;
-    var self = this;
-
-    this.createPlayer(wsUrl, this.fullCanvas).then(function (player) {
-      if (self.fullPlayer) self.destroyPlayer(self.fullPlayer);
-      self.fullPlayer = player;
-      self.setStreamStatus('connected');
-    }).catch(function (err) {
-      self.setStreamStatus('error');
-    });
-  }
-
-  destroyPlayer(player) {
-    if (!player) return;
-    try {
-      if (player.source && typeof player.source.destroy === 'function') {
-        player.source.destroy();
-      }
-      if (typeof player.destroy === 'function') {
-        player.destroy();
-      } else if (typeof player.stop === 'function') {
-        player.stop();
-      }
-    } catch (e) {}
-  }
-
+  // ── Camera details panel ────────────────────────────────────────────────────
   showCameraDetails(camera) {
     var body = document.getElementById('cameraDetailsBody');
     var panel = document.getElementById('cameraDetails');
@@ -208,44 +214,20 @@ class PreviewManager {
     body.innerHTML =
       '<div class="detail-group">' +
         '<div class="detail-group-title">Camera</div>' +
-        '<div class="detail-row">' +
-          '<span class="detail-label">Name</span>' +
-          '<span class="detail-value" id="detail-name">' + this.esc(camera.name) + '</span>' +
-        '</div>' +
-        '<div class="detail-row">' +
-          '<span class="detail-label">ID</span>' +
-          '<span class="detail-value" id="detail-id">' + this.esc(camera.id) + '</span>' +
-        '</div>' +
-        '<div class="detail-row">' +
-          '<span class="detail-label">Status</span>' +
-          '<span class="detail-value" id="detail-status">Offline</span>' +
-        '</div>' +
+        '<div class="detail-row"><span class="detail-label">Name</span><span class="detail-value" id="detail-name">' + this.esc(camera.name) + '</span></div>' +
+        '<div class="detail-row"><span class="detail-label">ID</span><span class="detail-value" id="detail-id">' + this.esc(camera.id) + '</span></div>' +
+        '<div class="detail-row"><span class="detail-label">Status</span><span class="detail-value" id="detail-status">Offline</span></div>' +
       '</div>' +
       '<div class="detail-group">' +
         '<div class="detail-group-title">Position</div>' +
-        '<div class="detail-row">' +
-          '<span class="detail-label">X</span>' +
-          '<span class="detail-value" id="detail-pos-x">-</span>' +
-        '</div>' +
-        '<div class="detail-row">' +
-          '<span class="detail-label">Y</span>' +
-          '<span class="detail-value" id="detail-pos-y">-</span>' +
-        '</div>' +
+        '<div class="detail-row"><span class="detail-label">X</span><span class="detail-value" id="detail-pos-x">-</span></div>' +
+        '<div class="detail-row"><span class="detail-label">Y</span><span class="detail-value" id="detail-pos-y">-</span></div>' +
       '</div>' +
       '<div class="detail-group">' +
         '<div class="detail-group-title">Field of View</div>' +
-        '<div class="detail-row">' +
-          '<span class="detail-label">Angle</span>' +
-          '<span class="detail-value" id="detail-angle">-</span>' +
-        '</div>' +
-        '<div class="detail-row">' +
-          '<span class="detail-label">Cone Width</span>' +
-          '<span class="detail-value" id="detail-cone-w">-</span>' +
-        '</div>' +
-        '<div class="detail-row">' +
-          '<span class="detail-label">Cone Length</span>' +
-          '<span class="detail-value" id="detail-cone-l">-</span>' +
-        '</div>' +
+        '<div class="detail-row"><span class="detail-label">Angle</span><span class="detail-value" id="detail-angle">-</span></div>' +
+        '<div class="detail-row"><span class="detail-label">Cone Width</span><span class="detail-value" id="detail-cone-w">-</span></div>' +
+        '<div class="detail-row"><span class="detail-label">Cone Length</span><span class="detail-value" id="detail-cone-l">-</span></div>' +
       '</div>' + rtspBlock;
 
     panel.classList.add('active');
@@ -279,32 +261,20 @@ class PreviewManager {
     var cam = window.cameraManager.getCamera(this.detailsCameraId);
     if (!cam) return;
 
-    var el = function (id) { return document.getElementById(id); };
+    var el = (id) => document.getElementById(id);
 
     var statusEl = el('detail-status');
     if (statusEl) {
-      var isOnline = !!cam.rtspUrl;
-      statusEl.textContent = isOnline ? 'Online' : 'Offline';
-      statusEl.className = 'detail-value ' + (isOnline ? 'status-online' : 'status-offline');
+      statusEl.textContent = cam.rtspUrl ? 'Online' : 'Offline';
+      statusEl.className = 'detail-value ' + (cam.rtspUrl ? 'status-online' : 'status-offline');
     }
 
-    var xEl = el('detail-pos-x');
-    if (xEl) xEl.textContent = Math.round(cam.x);
-
-    var yEl = el('detail-pos-y');
-    if (yEl) yEl.textContent = Math.round(cam.y);
-
-    var aEl = el('detail-angle');
-    if (aEl) aEl.textContent = Math.round(cam.angle) + '\u00B0';
-
-    var cwEl = el('detail-cone-w');
-    if (cwEl) cwEl.textContent = Math.round(cam.coneWidth) + '\u00B0';
-
-    var clEl = el('detail-cone-l');
-    if (clEl) clEl.textContent = Math.round(cam.coneLength) + 'px';
-
-    var rtspEl = el('detail-rtsp');
-    if (rtspEl && cam.rtspUrl) rtspEl.textContent = cam.rtspUrl;
+    var xEl = el('detail-pos-x'); if (xEl) xEl.textContent = Math.round(cam.x);
+    var yEl = el('detail-pos-y'); if (yEl) yEl.textContent = Math.round(cam.y);
+    var aEl = el('detail-angle'); if (aEl) aEl.textContent = Math.round(cam.angle) + '\u00B0';
+    var cwEl = el('detail-cone-w'); if (cwEl) cwEl.textContent = Math.round(cam.coneWidth) + '\u00B0';
+    var clEl = el('detail-cone-l'); if (clEl) clEl.textContent = Math.round(cam.coneLength) + 'px';
+    var rtspEl = el('detail-rtsp'); if (rtspEl && cam.rtspUrl) rtspEl.textContent = cam.rtspUrl;
   }
 
   esc(str) {
@@ -312,17 +282,4 @@ class PreviewManager {
     div.appendChild(document.createTextNode(str));
     return div.innerHTML;
   }
-
-  drawPlaceholder(canvas, text) {
-    try {
-      var ctx = canvas.getContext('2d');
-      ctx.fillStyle = '#0d0d1a';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = 'rgba(255,255,255,0.15)';
-      ctx.font = '12px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(text, canvas.width / 2, canvas.height / 2);
-    } catch (e) {}
-  }
-}
+} 

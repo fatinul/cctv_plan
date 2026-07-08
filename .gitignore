@@ -1,2 +1,8 @@
 node_modules/
 cameras.json
+
+# Docker runtime data
+mqtt/data/
+mqtt/log/
+frigate/storage/
+frigate/recordings/
