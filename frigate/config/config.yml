@@ -9,7 +9,7 @@ database:
   path: /config/frigate.db
 
 record:
-  enabled: true
+  enabled: false
   alerts:
     retain:
       days: 14
@@ -20,7 +20,7 @@ record:
     days: 7
 
 snapshots:
-  enabled: true
+  enabled: false
   retain:
     default: 14
 
@@ -61,7 +61,7 @@ cameras:
       height: 360
       fps: 5
     record:
-      enabled: true
+      enabled: false
       alerts:
         pre_capture: 5
         post_capture: 5
@@ -69,7 +69,7 @@ cameras:
         pre_capture: 5
         post_capture: 5
     snapshots:
-      enabled: true
+      enabled: false
       timestamp: true
       bounding_box: true
     motion:
@@ -106,7 +106,7 @@ cameras:
       height: 360
       fps: 5
     record:
-      enabled: true
+      enabled: false
       alerts:
         pre_capture: 5
         post_capture: 5
@@ -114,7 +114,7 @@ cameras:
         pre_capture: 5
         post_capture: 5
     snapshots:
-      enabled: true
+      enabled: false
       timestamp: true
       bounding_box: true
     motion:
